@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IB Field Report Generator — Infectious Bronchitis Surveillance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root {
+  --bg:#F5F3EE;--bg2:#EEEBE3;--bg3:#E6E2D8;--border:#D6D1C4;--border2:#C8C2B2;
+  --text:#1C1B18;--text2:#5A5749;--text3:#8A8478;--accent:#C1440E;--accent2:#E8611A;
+  --green:#2D6A3F;--green-bg:#E8F3EB;--amber:#A0560A;--amber-bg:#FAF0E0;
+  --red:#A42828;--red-bg:#FAEAEA;--blue:#1A4E82;--blue-bg:#E5EEF8;
+  --font-sans:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace;--font-serif:'Instrument Serif',serif;
+  --radius:6px;--radius-lg:10px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+header{background:var(--text);color:var(--bg);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--accent)}
+.header-logo{display:flex;align-items:baseline;gap:10px}
+.header-logo-main{font-family:var(--font-serif);font-size:20px;letter-spacing:-0.02em;color:#fff}
+.header-logo-sub{font-family:var(--font-mono);font-size:10px;color:#888;letter-spacing:0.08em;text-transform:uppercase}
+.header-badge{background:var(--accent);color:#fff;font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:3px;letter-spacing:0.06em}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem}
+.tab-bar{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:1.75rem;background:var(--bg);position:sticky;top:56px;z-index:90;padding-top:1.5rem}
+.tab-btn{padding:10px 20px;font-size:13px;font-family:var(--font-sans);font-weight:500;cursor:pointer;border:none;background:none;color:var(--text3);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:color 0.15s,border-color 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.section{margin-bottom:1.75rem}
+.sec-title{font-family:var(--font-mono);font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.6rem}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem;box-shadow:var(--shadow)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px}
+label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:4px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;font-size:13px;font-family:var(--font-sans);border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);transition:border-color 0.15s,box-shadow 0.15s;outline:none}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(193,68,14,0.10)}
+textarea{font-family:var(--font-mono);font-size:11px;resize:vertical;min-height:160px}
+button{padding:8px 16px;font-size:13px;font-weight:500;font-family:var(--font-sans);border:1px solid var(--border2);border-radius:var(--radius);background:#fff;color:var(--text);cursor:pointer;transition:background 0.12s,border-color 0.12s,transform 0.1s;display:inline-flex;align-items:center;gap:6px}
+button:hover{background:var(--bg2)}
+button:active{transform:scale(0.98)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{display:inline-block;font-size:10px;font-weight:600;font-family:var(--font-mono);padding:2px 7px;border-radius:3px;letter-spacing:0.03em}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-warn{background:var(--amber-bg);color:var(--amber)}
+.badge-bad{background:var(--red-bg);color:var(--red)}
+.badge-info{background:var(--blue-bg);color:var(--blue)}
+.badge-gray{background:var(--bg3);color:var(--text3)}
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:8px;border-left:3px solid;line-height:1.55}
+.alert-ok{background:var(--green-bg);color:#1a4a28;border-color:var(--green)}
+.alert-warn{background:var(--amber-bg);color:#6b3800;border-color:var(--amber)}
+.alert-bad{background:var(--red-bg);color:#5a1010;border-color:var(--red)}
+.alert-info{background:var(--blue-bg);color:#0f2f55;border-color:var(--blue)}
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:1.4rem;text-align:center;cursor:pointer;color:var(--text3);font-size:13px;transition:background 0.15s,border-color 0.15s;margin-bottom:8px}
+.drop-zone:hover,.drop-zone.over{background:var(--bg2);border-color:var(--accent2)}
+.drop-zone .dz-icon{font-size:28px;display:block;margin-bottom:6px}
+.drop-zone .dz-sub{font-size:11px;margin-top:4px;color:var(--text3)}
+.file-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.file-pill{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:4px 10px;font-size:11px;font-family:var(--font-mono);max-width:240px}
+.file-pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-pill .rm{cursor:pointer;color:var(--text3);flex-shrink:0;font-size:16px;line-height:1}
+.file-pill .rm:hover{color:var(--red)}
+.file-pill.ok{border-color:var(--green)}.file-pill.err{border-color:var(--red)}.file-pill.loading{opacity:0.55}
+.mode-btns{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.mode-btn{padding:7px 14px;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;background:#fff;color:var(--text2);font-family:var(--font-sans);transition:all 0.12s}
+.mode-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+.mode-btn:hover:not(.active){background:var(--bg2)}
+.tbl-wrap{overflow-x:auto;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.preview-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--font-mono)}
+.preview-table th{padding:6px 8px;background:var(--bg2);font-weight:500;font-size:10px;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0}
+.preview-table td{padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap;background:#fff}
+.preview-table td[contenteditable]:focus{background:#fffff8;outline:1px solid var(--accent2)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.4rem}
+.stat{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat-num{font-size:24px;font-weight:600;margin-bottom:2px;font-family:var(--font-mono)}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em}
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zone-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow)}
+.zone-card h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.findings-list{list-style:none}
+.findings-list li{font-size:12px;color:var(--text2);padding:2px 0;display:flex;align-items:flex-start;gap:5px;line-height:1.4}
+.findings-list li::before{content:"·";color:var(--text3);flex-shrink:0;margin-top:1px}
+.action-item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.action-item:last-child{border-bottom:none}
+.action-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--font-mono);flex-shrink:0;margin-top:2px}
+.action-text{font-size:13px;line-height:1.6}
+.report-sec{margin-bottom:1.5rem}
+.report-sec h3{font-size:15px;font-weight:600;margin-bottom:0.8rem;padding-bottom:6px;border-bottom:1.5px solid var(--border);font-family:var(--font-sans)}
+.haplo-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.2rem}
+#hapCanvas{display:block;width:100%;border-radius:var(--radius-lg);border:1px solid var(--border);background:#fff;cursor:grab;box-shadow:var(--shadow)}
+#hapCanvas:active{cursor:grabbing}
+.haplo-toolbar{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.haplo-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;align-items:center}
+.legend-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
+.legend-item{display:flex;align-items:center;gap:5px}
+.node-detail{display:none;margin-top:10px;background:var(--blue-bg);border:1px solid var(--blue);border-radius:var(--radius);padding:10px 14px;font-size:12px}
+@media print{header,.tab-bar,.btn-row,.haplo-toolbar{display:none!important}.tab-panel{display:block!important}#tab-results,#tab-haplo{page-break-after:always}}
+@media(max-width:640px){.row2,.row3{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,1fr)}.zone-grid{grid-template-columns:1fr}.haplo-stats{grid-template-columns:repeat(2,1fr)}}
+hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+footer{background:var(--text);color:var(--text3);font-family:var(--font-mono);font-size:10px;text-align:center;padding:1.2rem;letter-spacing:0.06em}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-logo">
+    <span class="header-logo-main">IB Field Report Generator</span>
+    <span class="header-logo-sub">Infectious Bronchitis Surveillance · Bachoco 2026 Protocol</span>
+  </div>
+  <span class="header-badge">v3.0</span>
+</header>
+<div class="container">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('results')">◧ Sample Results</button>
+    <button class="tab-btn" onclick="switchTab('haplo')">◎ Haplotype Network</button>
+    <button class="tab-btn" onclick="switchTab('report')">⊟ Report</button>
+  </div>
+  <div id="tab-results" class="tab-panel active">
+    <div class="section">
+      <div class="sec-title">Study metadata</div>
+      <div class="card">
+        <div class="row2">
+          <div><label>Organization / integrator</label><input type="text" id="org" placeholder="e.g. Bachoco"></div>
+          <div><label>Survey date</label><input type="text" id="survey_date" placeholder="e.g. December 2025"></div>
+        </div>
+        <div class="row2">
+          <div><label>Country / region</label><input type="text" id="country" placeholder="e.g. Mexico"></div>
+          <div><label>Vaccination program</label><input type="text" id="vacc_program" placeholder="e.g. Ma5 + 4/91 at day 1"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Input method</div>
+      <div class="mode-btns">
+        <button class="mode-btn active" id="modeXL" onclick="setMode('xl')">⊞ Excel / CSV</button>
+        <button class="mode-btn" id="modePdf" onclick="setMode('pdf')">⊡ PDF Reports</button>
+        <button class="mode-btn" id="modePaste" onclick="setMode('paste')">⊟ Paste Data</button>
+      </div>
+      <div id="panel-xl">
+        <div class="drop-zone" id="dropXL" onclick="document.getElementById('fileXL').click()">
+          <span class="dz-icon">⊞</span>
+          Drop <strong>.xlsx / .xls / .csv / .tsv</strong> here, or click to browse
+          <div class="dz-sub">Columns: Zone · Farm Code · Age (days) · Sample (T/CT) · Mass Ct · Mass Result · 793B Ct · 793B Result</div>
+          <input type="file" id="fileXL" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none" onchange="handleXL(event)">
+        </div>
+        <div id="xlFileList" class="file-list"></div>
+      </div>
+      <div id="panel-pdf" style="display:none">
+        <div class="drop-zone" id="dropPDF" onclick="document.getElementById('filePDF').click()">
+          <span class="dz-icon">⊡</span>
+          Drop <strong>one or multiple PDF lab reports</strong> here, or click to browse
+          <div class="dz-sub">ProtectoTake reports · IB sequencing PDFs · Combined result PDFs</div>
+          <input type="file" id="filePDF" accept=".pdf" multiple style="display:none" onchange="handlePDFs(event)">
+        </div>
+        <div id="pdfFileList" class="file-list"></div>
+        <div id="pdfStatus" style="font-size:11px;color:var(--text3);margin-bottom:6px"></div>
+        <div class="alert alert-info" style="font-size:12px">PDF text is extracted automatically. For scanned/image-only PDFs, correct results in the table below.</div>
+      </div>
+      <div id="panel-paste" style="display:none">
+        <div style="margin-bottom:6px"><label>Paste tab-separated data (header row optional)</label></div>
+        <textarea id="rawData" placeholder="Zone&#9;Farm Code&#9;Age&#9;Sample&#9;Mass Ct&#9;Mass Result&#9;793B Ct&#9;793B Result&#10;J&#9;MBAC148&#9;14&#9;T&#9;21.44&#9;Var 2 FV&#9;21.11&#9;Var 2 FV"></textarea>
+      </div>
+    </div>
+    <div id="parsedSection" style="display:none" class="section">
+      <div class="sec-title">Parsed records <span id="parsedCount" style="font-weight:400;color:var(--text3)"></span></div>
+      <div class="tbl-wrap" id="parsedTableWrap"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button onclick="clearParsed()">✕ Clear</button>
+        <button onclick="addRow()">+ Add row</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Interpretation options</div>
+      <div class="card">
+        <div class="row3">
+          <div><label>Vaccine take Ct cutoff</label><input type="number" id="ctThreshold" value="30" min="20" max="40"></div>
+          <div><label>Clinical signs declared?</label>
+            <select id="clinicalSigns"><option value="none">None reported</option><option value="some">Some flocks</option><option value="all">All flocks</option></select></div>
+          <div><label>Protectotype vaccine applied?</label>
+            <select id="protectotype"><option value="no">No</option><option value="partial">Partial zones</option><option value="yes">All zones</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="primary" onclick="generateReport()">⊟ Generate Report</button>
+      <button onclick="loadExample()">⊞ Load Example</button>
+      <button onclick="clearAll()">✕ Clear All</button>
+    </div>
+  </div>
+  <div id="tab-haplo" class="tab-panel">
+    <div class="section">
+      <div class="sec-title">MEGA11 aligned sequences — FASTA format</div>
+      <div class="drop-zone" id="dropFASTA" onclick="document.getElementById('fileFASTA').click()">
+        <span class="dz-icon">◎</span>
+        Drop <strong>.fasta / .fas / .fa / .aln / .nex / .txt</strong> (MEGA11 exported alignment)
+        <div class="dz-sub">Sequence headers used for group coloring — include year or type (e.g. &gt;MBAC148_2025_Var2). Multiple files merged automatically.</div>
+        <input type="file" id="fileFASTA" accept=".fasta,.fas,.fa,.aln,.txt,.nex" multiple style="display:none" onchange="handleFASTA(event)">
+      </div>
+      <div id="fastaFileList" class="file-list"></div>
+    </div>
+    <div class="section card">
+      <div class="row3">
+        <div><label>Color / group by</label>
+          <select id="colorBy" onchange="onColorByChange()">
+            <option value="auto">Auto-detect (year / type in header)</option>
+            <option value="year">Year in header</option>
+            <option value="custom">Custom groups (below)</option>
+          </select></div>
+        <div><label>Min frequency to show label</label><input type="number" id="minLabel" value="2" min="1" max="20" onchange="renderNetwork()"></div>
+        <div><label>Max parsimony steps ε</label><input type="number" id="epsilon" value="0" min="0" max="5" onchange="rebuildAndRender()"></div>
+      </div>
+      <div id="customGroupsRow" style="display:none;margin-top:8px">
+        <label>Custom group patterns — one per line: <code style="font-family:var(--font-mono);font-size:11px">GroupName=pattern1,pattern2</code></label>
+        <textarea id="customGroups" style="min-height:80px;margin-top:4px" placeholder="Field2024=MBAC04,MBAC08&#10;Field2025=MBAC14,MBAC15&#10;Vaccine=VAR2VV,VAR2NGS"></textarea>
+        <button onclick="rebuildAndRender()" style="margin-top:6px">↻ Apply groups</button>
+      </div>
+    </div>
+    <div id="haploSection" style="display:none">
+      <div class="haplo-stats" id="haploStats"></div>
+      <div class="haplo-toolbar">
+        <button onclick="resetZoom()">⊙ Reset view</button>
+        <button onclick="toggleLabels()">⊟ Toggle labels</button>
+        <button onclick="relayout()">⊞ Relayout</button>
+        <button onclick="exportSVG()">↓ Export SVG</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:4px">Scroll to zoom · Drag to pan · Click node for details</span>
+      </div>
+      <canvas id="hapCanvas" width="940" height="540"></canvas>
+      <div class="haplo-legend" id="haploLegend"></div>
+      <div class="node-detail" id="nodeDetail"></div>
+    </div>
+    <div id="haploPlaceholder" style="text-align:center;padding:4rem;color:var(--text3);font-size:14px">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.4">◎</div>
+      Drop a MEGA11 FASTA alignment above to compute and visualize the median-joining haplotype network
+    </div>
+  </div>
+  <div id="tab-report" class="tab-panel">
+    <div id="reportContent" style="text-align:center;padding:4rem;color:var(--text3);font-size:14px">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.4">⊟</div>
+      No report yet — add sample data and click <strong>Generate Report</strong>
+    </div>
+  </div>
+</div>
+<footer>IB Field Report Generator · Bachoco 2026 Protocol · Infectious Bronchitis Surveillance · Median-joining haplotype network · Public access version</footer>
+<script>
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let parsedRows=[],currentMode='xl',sequences=[],haplotypes=[],networkEdges=[],nodePositions=[],showLabels=true,cam={x:0,y:0,scale:1},dragging=false,lastMouse={x:0,y:0};
+const PALETTE=['#C1440E','#1A6EBD','#1D9E75','#A0560A','#7B5EA7','#2D6A3F','#B5384A','#1A5C7A','#7A6218','#3D3D8A'];
+let groupColors={};
+function switchTab(t){document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(e=>e.classList.remove('active'));const map={results:0,haplo:1,report:2};document.querySelectorAll('.tab-btn')[map[t]].classList.add('active');document.getElementById('tab-'+t).classList.add('active');if(t==='haplo'&&haplotypes.length)renderNetwork()}
+function setMode(m){currentMode=m;['xl','pdf','paste'].forEach(x=>{document.getElementById('panel-'+x).style.display=x===m?'block':'none';document.getElementById('mode'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active',x===m)})}
+['dropXL','dropPDF','dropFASTA'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('over')});el.addEventListener('dragleave',()=>el.classList.remove('over'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('over');const files=[...e.dataTransfer.files];if(id==='dropXL')processXLFiles(files);else if(id==='dropPDF')processPDFFiles(files);else processFASTAFiles(files)})});
+function handleXL(ev){processXLFiles([...ev.target.files])}
+function processXLFiles(files){files.forEach(file=>{const pill=addPill('xlFileList',file.name,'loading');const reader=new FileReader();reader.onload=e=>{try{let rows=[];if(file.name.match(/\.xlsx?$/i)){const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];rows=parseXLRows(XLSX.utils.sheet_to_csv(ws,{FS:'\t'}))}else rows=parseXLRows(e.target.result);parsedRows=[...parsedRows,...rows];renderParsedTable();pill.classList.remove('loading');pill.classList.add('ok');pill.querySelector('span').textContent=file.name+' ('+rows.length+' rows)'}catch(err){pill.classList.remove('loading');pill.classList.add('err')}};if(file.name.match(/\.xlsx?$/i))reader.readAsBinaryString(file);else reader.readAsText(file)})}
+function parseXLRows(raw){const lines=raw.trim().split('\n').filter(l=>l.trim());if(!lines.length)return[];const first=lines[0].toLowerCase();const hasH=first.includes('zone')||first.includes('farm')||first.includes('age');return lines.slice(hasH?1:0).map(l=>{const p=l.split('\t').map(s=>s.replace(/"/g,'').trim());if(p.length<3)return null;return{zone:p[0]||'',code:p[1]||'',age:parseInt(p[2])||0,sample:(p[3]||'T').toUpperCase(),massCt:p[4]&&p[4]!==''?parseFloat(p[4]):null,massResult:p[5]||'',ct793b:p[6]&&p[6]!==''?parseFloat(p[6]):null,result793b:p[7]||''}}).filter(r=>r&&(r.zone||r.code))}
+function handlePDFs(ev){processPDFFiles([...ev.target.files])}
+async function processPDFFiles(files){if(!window.pdfjsLib){document.getElementById('pdfStatus').textContent='PDF.js not loaded — please refresh.';return}document.getElementById('pdfStatus').textContent='Extracting text from '+files.length+' PDF(s)…';let newRows=[];for(const file of files){const pill=addPill('pdfFileList',file.name,'loading');try{const text=await extractPDFText(file);const rows=parsePDFText(text,file.name);newRows=[...newRows,...rows];parsedRows=[...parsedRows,...rows];renderParsedTable();pill.classList.remove('loading');pill.classList.add(rows.length?'ok':'err');pill.querySelector('span').textContent=file.name+(rows.length?' ('+rows.length+' records)':' — no data found')}catch(err){pill.classList.remove('loading');pill.classList.add('err')}}document.getElementById('pdfStatus').textContent=newRows.length?'Extracted '+newRows.length+' records from '+files.length+' PDF(s).':'Could not auto-extract. Use table below or Paste mode.'}
+async function extractPDFText(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=async e=>{try{const pdf=await pdfjsLib.getDocument({data:e.target.result}).promise;let txt='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();txt+=content.items.map(x=>x.str).join(' ')+'\n'}resolve(txt)}catch(err){reject(err)}};reader.readAsArrayBuffer(file)})}
+function parsePDFText(text,filename){const rows=[];let defaultZone='';const zm=filename.match(/zone[_\s-]?([A-Z])/i)||(text.match(/zona?\s+([A-Z])/i));if(zm)defaultZone=zm[1].toUpperCase();const chunks=text.split(/(?=\bMBAC|\bMEX\s*MBAC)/i).filter(c=>c.trim().length>3);for(const chunk of chunks){const codeM=chunk.match(/(?:MEX\s*)?(MBAC[0-9A-Z\/]+)/i);if(!codeM)continue;const code=codeM[1].replace(/\s/g,'');const ageM=chunk.match(/\b(7|14|21|28|31|35|42)\b/);const age=ageM?parseInt(ageM[1]):0;let sample='T';if(/\bCT\b|cecal\s*tonsil/i.test(chunk))sample='CT';let zone=defaultZone;const zonaM=chunk.match(/Zon[ae]\s+([A-Z])/i);if(zonaM)zone=zonaM[1].toUpperCase();const ctVals=[];const ctReg=/\b([0-9]{2}\.[0-9]{1,2})\b/g;let cm;while((cm=ctReg.exec(chunk))!==null)ctVals.push(parseFloat(cm[1]));const allResults=[];const rReg=/(Var\s*2\s*(?:FV|Strain)?|GI-17|Arkansas[-\s]?like|Ark[-\s]?like|4\/91\s*(?:VV|VOV)?|Ma5\s*(?:VOV|VV)?|23-050667[^\s]*|Negative(?:\s*\(F\))?|False[-\s]Negative|Strain\s*Untypeable|SU\b)/gi;let rm;while((rm=rReg.exec(chunk))!==null)allResults.push(rm[0].trim());if(code&&age)rows.push({zone,code,age,sample,massCt:ctVals[0]||null,massResult:allResults[0]||'',ct793b:ctVals[1]||null,result793b:allResults[1]||''})}return rows}
+function addPill(cid,name,state){const list=document.getElementById(cid);const pill=document.createElement('div');pill.className='file-pill '+state;pill.innerHTML=`<span>${name}</span><span class="rm" onclick="this.closest('.file-pill').remove()">×</span>`;list.appendChild(pill);return pill}
+function renderParsedTable(){const section=document.getElementById('parsedSection');const wrap=document.getElementById('parsedTableWrap');document.getElementById('parsedCount').textContent='('+parsedRows.length+')';if(!parsedRows.length){section.style.display='none';return}section.style.display='block';const cols=['Zone','Farm Code','Age','Sample','Mass Ct','Mass Result','793B Ct','793B Result'];const keys=['zone','code','age','sample','massCt','massResult','ct793b','result793b'];let html='<table class="preview-table"><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'<th></th></tr></thead><tbody>';parsedRows.forEach((r,i)=>{html+='<tr>'+keys.map(k=>`<td contenteditable="true" oninput="updateRow(${i},'${k}',this.textContent)">${r[k]??''}</td>`).join('')+`<td><span onclick="deleteRow(${i})" style="cursor:pointer;color:var(--text3);font-size:15px">×</span></td></tr>`});html+='</tbody></table>';wrap.innerHTML=html}
+function updateRow(i,k,v){if(!parsedRows[i])return;const nk=['age','massCt','ct793b'];parsedRows[i][k]=nk.includes(k)?(v===''?null:parseFloat(v)||0):v}
+function deleteRow(i){parsedRows.splice(i,1);renderParsedTable()}
+function clearParsed(){parsedRows=[];renderParsedTable();document.getElementById('parsedSection').style.display='none'}
+function addRow(){parsedRows.push({zone:'',code:'',age:0,sample:'T',massCt:null,massResult:'',ct793b:null,result793b:''});renderParsedTable()}
+function handleFASTA(ev){processFASTAFiles([...ev.target.files])}
+function processFASTAFiles(files){files.forEach(file=>{const pill=addPill('fastaFileList',file.name,'loading');const reader=new FileReader();reader.onload=e=>{try{const seqs=parseFASTA(e.target.result);sequences=[...sequences,...seqs];buildHaplotypes();pill.classList.remove('loading');pill.classList.add('ok');pill.querySelector('span').textContent=file.name+' ('+seqs.length+' seqs)';document.getElementById('haploPlaceholder').style.display='none';document.getElementById('haploSection').style.display='block';renderNetwork()}catch(err){pill.classList.remove('loading');pill.classList.add('err');console.error(err)}};reader.readAsText(file)})}
+function parseFASTA(text){const seqs=[];const lines=text.replace(/\r/g,'').split('\n');let curId='',curSeq='';for(const line of lines){if(line.startsWith('>')){if(curId&&curSeq)seqs.push({id:curId,seq:curSeq.toUpperCase()});curId=line.slice(1).trim();curSeq=''}else{curSeq+=line.trim().replace(/[^ACGTacgtNn\-]/g,'')}}if(curId&&curSeq)seqs.push({id:curId,seq:curSeq.toUpperCase()});if(seqs.length>1){const len=seqs[0].seq.length;const keep=[];for(let c=0;c<len;c++){if(seqs.some(s=>s.seq[c]&&s.seq[c]!=='-'&&s.seq[c]!=='N'))keep.push(c)}seqs.forEach(s=>s.seq=keep.map(c=>s.seq[c]||'-').join(''))}return seqs}
+function inferGroup(id){const colorBy=document.getElementById('colorBy').value;if(colorBy==='custom'){const raw=document.getElementById('customGroups').value;for(const line of raw.split('\n')){const eq=line.indexOf('=');if(eq<0)continue;const gname=line.slice(0,eq).trim();const patterns=line.slice(eq+1).split(',').map(p=>p.trim()).filter(Boolean);if(patterns.some(p=>id.toUpperCase().includes(p.toUpperCase())))return gname}return'Unknown'}const yearM=id.match(/\b(19|20)\d{2}\b/);if(yearM)return yearM[0];if(/vaccine|vv|VVU|NGS/i.test(id))return'Vaccine';if(/var\s*2|GI.23/i.test(id))return'Var2';if(/GI.17|050667/i.test(id))return'GI-17';if(/ark|GI.9/i.test(id))return'Arkansas';return'Unknown'}
+function hamming(a,b){let d=0,valid=0;for(let i=0;i<Math.min(a.length,b.length);i++){if(a[i]==='-'||b[i]==='-'||a[i]==='N'||b[i]==='N')continue;valid++;if(a[i]!==b[i])d++}return{d,valid}}
+function mutationPositions(a,b){const pos=[];for(let i=0;i<Math.min(a.length,b.length);i++){if(a[i]==='-'||b[i]==='-'||a[i]==='N'||b[i]==='N')continue;if(a[i]!==b[i])pos.push(i+1)}return pos}
+function buildHaplotypes(){const eps=parseInt(document.getElementById('epsilon').value)||0;const haploMap={};for(const s of sequences){const group=inferGroup(s.id);let matched=null;for(const hid in haploMap){const{d}=hamming(haploMap[hid].seq,s.seq);if(d<=eps){matched=hid;break}}if(matched){haploMap[matched].members.push(s.id);haploMap[matched].groups.add(group)}else{const hid='H'+(Object.keys(haploMap).length+1);haploMap[hid]={id:hid,seq:s.seq,members:[s.id],groups:new Set([group])}}}haplotypes=Object.values(haploMap).map(h=>({...h,count:h.members.length,group:pickDominantGroup(h.groups)}));buildMinSpanTree();const allGroups=[...new Set(haplotypes.map(h=>h.group))];groupColors={};allGroups.forEach((g,i)=>{if(/vaccine/i.test(g))groupColors[g]='#1D9E75';else if(/unknown/i.test(g))groupColors[g]='#8A8478';else groupColors[g]=PALETTE[i%PALETTE.length]});layoutNetwork();updateHaploStats()}
+function pickDominantGroup(groupSet){const arr=[...groupSet];if(arr.length===1)return arr[0];if(arr.some(g=>/vaccine/i.test(g))&&arr.length>1)return arr.find(g=>!/vaccine/i.test(g))||arr[0];return arr[0]}
+function buildMinSpanTree(){networkEdges=[];const n=haplotypes.length;if(n<2)return;const dist=[],mutPos=[];for(let i=0;i<n;i++){dist[i]=[];mutPos[i]=[];for(let j=0;j<n;j++){const{d}=hamming(haplotypes[i].seq,haplotypes[j].seq);dist[i][j]=d;mutPos[i][j]=i!==j?mutationPositions(haplotypes[i].seq,haplotypes[j].seq):[]}}const inTree=new Array(n).fill(false);const minEdge=new Array(n).fill(Infinity);const parent=new Array(n).fill(-1);minEdge[0]=0;for(let iter=0;iter<n;iter++){let u=-1;for(let v=0;v<n;v++)if(!inTree[v]&&(u===-1||minEdge[v]<minEdge[u]))u=v;inTree[u]=true;for(let v=0;v<n;v++)if(!inTree[v]&&dist[u][v]<minEdge[v]){minEdge[v]=dist[u][v];parent[v]=u}}for(let v=1;v<n;v++){const u=parent[v];networkEdges.push({a:u,b:v,weight:dist[u][v],mutations:mutPos[u][v]})}const eps=parseInt(document.getElementById('epsilon').value)||0;const mstMin=networkEdges.reduce((m,e)=>Math.min(m,e.weight),Infinity);const threshold=Math.max(mstMin,1)+eps;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){if(dist[i][j]<=threshold&&!networkEdges.find(e=>(e.a===i&&e.b===j)||(e.a===j&&e.b===i)))networkEdges.push({a:i,b:j,weight:dist[i][j],mutations:mutPos[i][j],reticulation:true})}}
+function layoutNetwork(){const n=haplotypes.length;nodePositions=[];if(!n)return;const W=940,H=540,cx=W/2,cy=H/2;for(let i=0;i<n;i++){const angle=(i/n)*2*Math.PI;const r=Math.min(W,H)*0.35*(0.4+Math.random()*0.6);nodePositions.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)})}const ideal=110;for(let iter=0;iter<350;iter++){const temp=Math.max(1.5,18*(1-iter/350));const forces=nodePositions.map(()=>({fx:0,fy:0}));for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const dx=nodePositions[j].x-nodePositions[i].x;const dy=nodePositions[j].y-nodePositions[i].y;const d2=dx*dx+dy*dy+0.01;const repK=9000/d2;forces[i].fx-=repK*dx;forces[i].fy-=repK*dy;forces[j].fx+=repK*dx;forces[j].fy+=repK*dy}for(const e of networkEdges){const dx=nodePositions[e.b].x-nodePositions[e.a].x;const dy=nodePositions[e.b].y-nodePositions[e.a].y;const d=Math.sqrt(dx*dx+dy*dy)+0.01;const target=ideal*(1+e.weight*0.55);const att=(d-target)*0.07;forces[e.a].fx+=att*dx/d;forces[e.a].fy+=att*dy/d;forces[e.b].fx-=att*dx/d;forces[e.b].fy-=att*dy/d}for(let i=0;i<n;i++){const f=forces[i];const mag=Math.sqrt(f.fx*f.fx+f.fy*f.fy)+0.01;const cap=Math.min(mag,temp*5)/mag;nodePositions[i].x=Math.max(35,Math.min(W-35,nodePositions[i].x+f.fx*cap));nodePositions[i].y=Math.max(35,Math.min(H-35,nodePositions[i].y+f.fy*cap))}}}
+function nodeRadius(count){return Math.max(8,Math.min(40,8+Math.sqrt(count)*5.5))}
+function renderNetwork(){if(!haplotypes.length)return;const canvas=document.getElementById('hapCanvas');const ctx=canvas.getContext('2d');const W=940,H=540;const dpr=window.devicePixelRatio||1;canvas.style.width=W+'px';canvas.style.height=H+'px';if(canvas.width!==W*dpr){canvas.width=W*dpr;canvas.height=H*dpr}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(cam.x,cam.y);ctx.scale(cam.scale,cam.scale);for(const e of networkEdges){const a=nodePositions[e.a],b=nodePositions[e.b];if(!a||!b)continue;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=e.reticulation?'rgba(138,132,120,0.3)':'rgba(90,87,73,0.65)';ctx.lineWidth=e.reticulation?1:1.8;ctx.setLineDash(e.reticulation?[4,3]:[]);ctx.stroke();ctx.setLineDash([]);if(e.weight>0&&!e.reticulation){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const dx=b.x-a.x,dy=b.y-a.y;const len=Math.sqrt(dx*dx+dy*dy)+0.01;const ux=dx/len,uy=dy/len;const px=-uy,py=ux;const hatchLen=5.5;const steps=Math.min(e.weight,14);const spread=Math.min(steps*7,len*0.48);for(let k=0;k<steps;k++){const t=steps>1?(k/(steps-1)-0.5):0;const hx=mx+t*spread*ux,hy=my+t*spread*uy;ctx.beginPath();ctx.moveTo(hx-px*hatchLen/2,hy-py*hatchLen/2);ctx.lineTo(hx+px*hatchLen/2,hy+py*hatchLen/2);ctx.strokeStyle='rgba(70,65,55,0.75)';ctx.lineWidth=1.3;ctx.stroke()}ctx.font='9px monospace';ctx.fillStyle='rgba(70,65,55,0.8)';ctx.textAlign='center';ctx.fillText(e.weight,mx+py*11,my-px*11)}}for(let i=0;i<haplotypes.length;i++){const h=haplotypes[i];const p=nodePositions[i];if(!p)continue;const r=nodeRadius(h.count);const color=groupColors[h.group]||'#8A8478';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=color+'bb';ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.fill();ctx.stroke();const minLbl=parseInt(document.getElementById('minLabel').value)||1;if(showLabels&&h.count>=minLbl){const fs=Math.max(8,Math.min(11,r*0.68));ctx.font=`${fs}px sans-serif`;ctx.fillStyle='rgba(28,27,24,0.88)';ctx.textAlign='center';ctx.textBaseline='middle';if(h.count>1){ctx.fillText(h.id,p.x,p.y-1);ctx.font=`bold ${Math.max(7,fs-1)}px monospace`;ctx.fillText('n='+h.count,p.x,p.y+r+9)}else{const shortId=h.members[0].length>14?h.members[0].slice(0,13)+'…':h.members[0];ctx.fillText(shortId,p.x,p.y+r+9)}}}ctx.restore();const allGroups=[...new Set(haplotypes.map(h=>h.group))];let legHtml='';allGroups.forEach(g=>{const c=groupColors[g]||'#888';legHtml+=`<span class="legend-item"><span class="legend-dot" style="background:${c}bb;border:1.5px solid ${c}"></span><span>${g}</span></span>`});legHtml+=`<span class="legend-item"><span class="legend-dot" style="background:transparent;border:1px dashed #8A8478"></span><span>Hypothetical</span></span>`;legHtml+=`<span style="margin-left:10px;font-size:10px;color:var(--text3)">Node size ∝ frequency · Hatch marks = mutations · Dashed = reticulations</span>`;document.getElementById('haploLegend').innerHTML=legHtml}
+function updateHaploStats(){const totalSeqs=sequences.length;const nHap=haplotypes.length;const maxFreq=Math.max(...haplotypes.map(h=>h.count));document.getElementById('haploStats').innerHTML=`<div class="stat"><div class="stat-num">${totalSeqs}</div><div class="stat-lbl">Sequences</div></div><div class="stat"><div class="stat-num">${nHap}</div><div class="stat-lbl">Unique haplotypes</div></div><div class="stat"><div class="stat-num">${maxFreq}</div><div class="stat-lbl">Dominant freq</div></div>`}
+function onColorByChange(){document.getElementById('customGroupsRow').style.display=document.getElementById('colorBy').value==='custom'?'block':'none';rebuildAndRender()}
+function rebuildAndRender(){if(haplotypes.length||sequences.length){buildHaplotypes();renderNetwork()}}
+function relayout(){layoutNetwork();renderNetwork()}
+function resetZoom(){cam={x:0,y:0,scale:1};renderNetwork()}
+function toggleLabels(){showLabels=!showLabels;renderNetwork()}
+function exportSVG(){const W=940,H=540;let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="background:#fff;font-family:sans-serif">`;for(const e of networkEdges){const a=nodePositions[e.a],b=nodePositions[e.b];if(!a||!b)continue;const dash=e.reticulation?'stroke-dasharray="4 3" ':'';svg+=`<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${e.reticulation?'#ccc':'#666'}" stroke-width="${e.reticulation?1:1.8}" ${dash}/>`;if(e.weight>0&&!e.reticulation)svg+=`<text x="${((a.x+b.x)/2).toFixed(1)}" y="${((a.y+b.y)/2-5).toFixed(1)}" text-anchor="middle" font-size="9" fill="#555">${e.weight}</text>`}for(let i=0;i<haplotypes.length;i++){const h=haplotypes[i],p=nodePositions[i];if(!p)continue;const r=nodeRadius(h.count),c=groupColors[h.group]||'#888';svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${c}bb" stroke="${c}" stroke-width="1.8"/>`;svg+=`<text x="${p.x.toFixed(1)}" y="${(p.y+r+11).toFixed(1)}" text-anchor="middle" font-size="9" fill="#333">${h.id} n=${h.count}</text>`}svg+='</svg>';const blob=new Blob([svg],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='haplotype_network.svg';a.click();URL.revokeObjectURL(url)}
+const hapCanvas=document.getElementById('hapCanvas');
+hapCanvas.addEventListener('wheel',e=>{e.preventDefault();const rect=hapCanvas.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;const delta=e.deltaY<0?1.12:0.88;cam.x=(cam.x-mx)*delta+mx;cam.y=(cam.y-my)*delta+my;cam.scale*=delta;renderNetwork()},{passive:false});
+hapCanvas.addEventListener('mousedown',e=>{dragging=true;lastMouse={x:e.clientX,y:e.clientY}});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('mousemove',e=>{if(!dragging)return;cam.x+=e.clientX-lastMouse.x;cam.y+=e.clientY-lastMouse.y;lastMouse={x:e.clientX,y:e.clientY};renderNetwork()});
+hapCanvas.addEventListener('click',e=>{const rect=hapCanvas.getBoundingClientRect();const mx=(e.clientX-rect.left-cam.x)/cam.scale;const my=(e.clientY-rect.top-cam.y)/cam.scale;let closest=null,minD=999;nodePositions.forEach((p,i)=>{const d=Math.sqrt((p.x-mx)**2+(p.y-my)**2);if(d<minD+nodeRadius(haplotypes[i].count)){closest=i;minD=d}});const detail=document.getElementById('nodeDetail');if(closest!==null&&minD<nodeRadius(haplotypes[closest].count)+10){const h=haplotypes[closest];detail.style.display='block';detail.innerHTML=`<strong>${h.id}</strong> · Group: <em>${h.group}</em> · ${h.count} sequence(s)<br><span style="font-size:11px;color:var(--text2)">${h.members.join(', ')}</span>`}else{detail.style.display='none'}});
+function classifyResult(result){const r=(result||'').toLowerCase().replace(/\s+/g,' ');if(!r||r==='negative'||r==='-'||r==='')return{type:'negative',cls:'badge-gray'};if(r.includes('(f)')||r.includes('false'))return{type:'false_neg',cls:'badge-warn'};if(r.includes('su')||r.includes('untypeable')||r.includes('ark positive'))return{type:'su',cls:'badge-warn'};if(r.includes('var 2')||r.includes('var2'))return{type:'field_var2',label:'Var 2 (FV)',cls:'badge-bad'};if(r.includes('gi-17')||r.includes('050667'))return{type:'field_gi17',label:'GI-17 (FV)',cls:'badge-bad'};if(r.includes('ark')||r.includes('al/231'))return{type:'field_ark',label:'Arkansas (FV)',cls:'badge-warn'};if(r.includes('4/91')&&r.includes('vov'))return{type:'vov_491',label:'4/91 VOV',cls:'badge-ok'};if(r.includes('4/91'))return{type:'vv_491',label:'4/91 VV',cls:'badge-ok'};if(r.includes('ma5'))return{type:'vov_ma5',label:'Ma5 VOV',cls:'badge-ok'};return{type:'other',label:result,cls:'badge-gray'}}
+function interpretZone(rows,ctThresh){const day7=rows.filter(r=>r.age>0&&r.age<=9);const postVacc=rows.filter(r=>r.age>=14);let vaccTake={mass:null,b793:null};if(day7.length){vaccTake.mass=day7.some(r=>r.massCt&&r.massCt<ctThresh);vaccTake.b793=day7.some(r=>r.ct793b&&r.ct793b<ctThresh)}const fieldViruses=[];let earlyChallenge=false,cecalPos=false,trachField=false;postVacc.forEach(r=>{const mc=classifyResult(r.massResult),bc=classifyResult(r.result793b);[mc,bc].forEach(c=>{if(['field_var2','field_gi17','field_ark'].includes(c.type)&&!fieldViruses.includes(c.label||c.type))fieldViruses.push(c.label||c.type)});if(r.age<=14&&(['field_var2','field_gi17','field_ark'].includes(mc.type)||['field_var2','field_gi17','field_ark'].includes(bc.type)))earlyChallenge=true;if(['field_var2','field_gi17','field_ark'].includes(mc.type))trachField=true;if(['field_var2','field_gi17','field_ark'].includes(bc.type))cecalPos=true});const bothOrgansPos=trachField&&cecalPos;const warnings=[];if(vaccTake.mass===false)warnings.push('No Mass-type vaccine take at day 7');if(vaccTake.b793===false)warnings.push('No 4/91 vaccine take at day 7');if(earlyChallenge)warnings.push('Early field challenge (≤14 days)');if(bothOrgansPos)warnings.push('Both organs positive — vaccine displacement');else if(cecalPos)warnings.push('Cecal tonsils positive');return{vaccTake,fieldViruses,earlyChallenge,cecalPos,bothOrgansPos,trachField,warnings}}
+function generateReport(){let rows=[];if(currentMode==='paste')rows=parseXLRows(document.getElementById('rawData').value);else rows=[...parsedRows];if(!rows.length){alert('No sample data found. Please add data first.');return}const ctThresh=parseInt(document.getElementById('ctThreshold').value)||30;const org=document.getElementById('org').value||'[Organization]';const dateStr=document.getElementById('survey_date').value||'[Date]';const country=document.getElementById('country').value||'[Country]';const vaccProg=document.getElementById('vacc_program').value||'Ma5 + 4/91';const clinSigns=document.getElementById('clinicalSigns').value;const protecto=document.getElementById('protectotype').value;const zones={};rows.forEach(r=>{if(r.zone)zones[r.zone]=(zones[r.zone]||[]).concat(r)});const zoneNames=Object.keys(zones);if(!zoneNames.length){alert('No zone information found. Check Zone column.');return}const zoneResults={};zoneNames.forEach(z=>{zoneResults[z]=interpretZone(zones[z],ctThresh)});const noVaccTake=zoneNames.filter(z=>{const vt=zoneResults[z].vaccTake;return vt.mass===false||vt.b793===false}).length;const earlyChallCnt=zoneNames.filter(z=>zoneResults[z].earlyChallenge).length;const fvCount=zoneNames.filter(z=>zoneResults[z].fieldViruses.length>0).length;const allFV=[...new Set(zoneNames.flatMap(z=>zoneResults[z].fieldViruses))];const hasVar2=allFV.some(v=>/var 2/i.test(v));const hasGI17=allFV.some(v=>/gi-17/i.test(v));const hasArk=allFV.some(v=>/ark/i.test(v));let html=`<div class="report-sec"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px"><div><div style="font-family:var(--font-serif);font-size:22px;line-height:1.2">${org}</div><div style="font-size:13px;font-weight:600;margin-top:2px">IB Field Findings — ${dateStr}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${country} · Vaccination: ${vaccProg}</div></div><button onclick="window.print()">⊟ Print</button></div></div><div class="stat-grid"><div class="stat"><div class="stat-num">${zoneNames.length}</div><div class="stat-lbl">Zones evaluated</div></div><div class="stat"><div class="stat-num" style="color:${noVaccTake>0?'var(--red)':'var(--green)'}">${noVaccTake}</div><div class="stat-lbl">No vaccine take</div></div><div class="stat"><div class="stat-num" style="color:${earlyChallCnt>0?'var(--red)':'var(--green)'}">${earlyChallCnt}</div><div class="stat-lbl">Early challenge</div></div><div class="stat"><div class="stat-num" style="color:${fvCount>0?'var(--amber)':'var(--green)'}">${fvCount}</div><div class="stat-lbl">Field virus detected</div></div></div>`;
+if(haplotypes.length){const totalSeqs=sequences.length;const nHap=haplotypes.length;const dominant=haplotypes.reduce((a,b)=>a.count>b.count?a:b);const allGroups=[...new Set(haplotypes.map(h=>h.group))];const groupSummary=allGroups.map(g=>{const gHaps=haplotypes.filter(h=>h.group===g);const gSeqs=gHaps.reduce((s,h)=>s+h.count,0);return`${g}: ${gSeqs} seq (${gHaps.length} haplotype${gHaps.length!==1?'s':''})`}).join(' · ');const yearGroups=allGroups.filter(g=>/^\d{4}$/.test(g)).sort();let divergenceNote='';if(yearGroups.length>=2){const recent=yearGroups[yearGroups.length-1];const prior=yearGroups.slice(0,-1);const rHaps=haplotypes.filter(h=>h.group===recent);const pHaps=haplotypes.filter(h=>prior.includes(h.group));if(rHaps.length&&pHaps.length){const minCross=Math.min(...rHaps.flatMap(rh=>pHaps.map(ph=>hamming(rh.seq,ph.seq).d)));if(minCross>2)divergenceNote=`Minimum divergence between ${recent} and prior strains: <strong>${minCross} nucleotide substitutions</strong>, suggesting distinct introduction event(s).`}}const vaccHap=haplotypes.find(h=>/vaccine/i.test(h.group));let vaccDistNote='';if(vaccHap){const fieldHaps=haplotypes.filter(h=>!/vaccine/i.test(h.group));if(fieldHaps.length){const minVD=Math.min(...fieldHaps.map(fh=>hamming(fh.seq,vaccHap.seq).d));const maxVD=Math.max(...fieldHaps.map(fh=>hamming(fh.seq,vaccHap.seq).d));vaccDistNote=`Field strains are <strong>${minVD}–${maxVD} nucleotide substitutions</strong> from the commercial vaccine sequence.`}}const clusterEdges=networkEdges.filter(e=>e.weight<=1&&!e.reticulation);let clusterNote='';if(clusterEdges.length>3){const clustered=new Set(clusterEdges.flatMap(e=>[e.a,e.b]));const cCount=haplotypes.filter((_,i)=>clustered.has(i)).reduce((s,h)=>s+h.count,0);if(cCount>5)clusterNote=`A cluster of <strong>${clustered.size} haplotypes</strong> with ≤1 mutation separation encompasses <strong>${cCount} sequences</strong>, suggesting spread from a single introduction.`}html+=`<div class="report-sec"><h3>Haplotype Network Analysis</h3><div class="haplo-stats"><div class="stat"><div class="stat-num">${totalSeqs}</div><div class="stat-lbl">Sequences</div></div><div class="stat"><div class="stat-num">${nHap}</div><div class="stat-lbl">Unique haplotypes</div></div><div class="stat"><div class="stat-num">${dominant.count}</div><div class="stat-lbl">Dominant haplotype</div></div></div><div class="alert alert-info"><strong>Group composition:</strong> ${groupSummary}<br><strong>Dominant haplotype:</strong> ${dominant.id} (${dominant.group}, n=${dominant.count}) — ${dominant.members.slice(0,6).join(', ')}${dominant.members.length>6?' …':''}<br>${divergenceNote?'<strong>Temporal divergence:</strong> '+divergenceNote+'<br>':''}${vaccDistNote||''}</div>${clusterNote?`<div class="alert alert-bad">${clusterNote}</div>`:''}<div style="font-size:11px;color:var(--text3);margin-top:6px">↗ Full interactive network: <a href="#" onclick="switchTab('haplo');return false;" style="color:var(--accent)">Haplotype network tab</a></div></div>`}
+if(allFV.length){html+=`<div class="report-sec"><h3>Field Viruses Identified</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">`;if(hasVar2)html+=`<span class="badge badge-bad">Var 2 / GI-23</span>`;if(hasGI17)html+=`<span class="badge badge-bad">GI-17 lineage</span>`;if(hasArk)html+=`<span class="badge badge-warn">Arkansas-like / GI-9</span>`;html+=`</div>`;if(hasGI17)html+=`<div class="alert alert-info">GI-17 lineage includes strains causing respiratory, renal, and reproductive disease (US 1980s–90s). DMV/1639 (Delmarva, 2011) belongs to this lineage. <strong>No challenge studies with current vaccine combinations.</strong></div>`;html+=`</div>`}
+const critical=[];if(noVaccTake===zoneNames.length&&zoneNames.length>1)critical.push('No vaccine take detected in any zone — immediate hatchery review required');zoneNames.forEach(z=>{if(zoneResults[z].bothOrgansPos)critical.push(`Zone ${z}: field virus in BOTH trachea and cecal tonsils — active replication and vaccine displacement confirmed`)});if(earlyChallCnt)critical.push(`Early field challenge (≤14 days) confirmed in ${earlyChallCnt} zone(s) — combined with poor vaccine take, conditions exist for clinical disease`);if(clinSigns==='none'&&zoneNames.some(z=>zoneResults[z].bothOrgansPos))critical.push('No clinical signs declared despite dual-organ positivity — possible early warning of pre-clinical vaccine displacement');if(critical.length){html+=`<div class="report-sec"><h3>Key Concerns</h3>`;critical.forEach(w=>{html+=`<div class="alert alert-bad">⚠ ${w}</div>`});html+=`</div>`}
+html+=`<div class="report-sec"><h3>Zone-by-Zone Summary</h3><div class="zone-grid">`;zoneNames.forEach(z=>{const res=zoneResults[z];const bc=res.bothOrgansPos?'var(--red)':res.fieldViruses.length?'var(--amber)':res.vaccTake.mass||res.vaccTake.b793?'var(--green)':'var(--border)';const badge=res.bothOrgansPos?'<span class="badge badge-bad">High risk</span>':res.fieldViruses.length?'<span class="badge badge-warn">Field virus</span>':res.vaccTake.mass||res.vaccTake.b793?'<span class="badge badge-ok">Vaccine take</span>':'<span class="badge badge-gray">No day-7 data</span>';html+=`<div class="zone-card" style="border-color:${bc}"><h4>Zone ${z}${badge}</h4><ul class="findings-list">`;if(res.vaccTake.mass!==null)html+=`<li>Mass-type take: ${res.vaccTake.mass?'<span style="color:var(--green)">confirmed</span>':'<span style="color:var(--red)">not detected</span>'}</li>`;if(res.vaccTake.b793!==null)html+=`<li>4/91 take: ${res.vaccTake.b793?'<span style="color:var(--green)">confirmed</span>':'<span style="color:var(--red)">not detected</span>'}</li>`;if(res.fieldViruses.length)html+=`<li>Field viruses: <strong>${res.fieldViruses.join(', ')}</strong></li>`;if(res.earlyChallenge)html+=`<li><span style="color:var(--red)">Early challenge ≤14 days</span></li>`;if(res.bothOrgansPos)html+=`<li><span style="color:var(--red)">Both organs positive — displacement</span></li>`;else if(res.cecalPos)html+=`<li>Cecal tonsils positive</li>`;html+=`</ul></div>`});html+=`</div></div>`;
+const actions=[];if(noVaccTake>0)actions.push('Enhance hatchery vaccination accuracy: verify vaccine reconstitution, mixing, cold chain, and spray/eye-drop technique. Implement regular audits.');actions.push('Continue day-7 ProtectoTake plus IB sequencing to confirm vaccine take and detect early field challenge.');actions.push('Sample at days 14, 28, and 42 (trachea + cecal tonsils) to track vaccine persistence and field challenge timing.');if(haplotypes.length)actions.push('Continue haplotype network surveillance across seasons to monitor field strain evolution and divergence from vaccine sequences.');if(hasVar2||hasArk)actions.push('Expand protectotype vaccination coverage to reduce Var 2 / Arkansas field virus burden.');if(hasGI17)actions.push('Monitor GI-17 closely — no challenge data for current vaccine combinations. Consult vaccine manufacturer.');if(earlyChallCnt>0)actions.push('Investigate biosecurity at zones with early challenge: hatchery environment, transport hygiene, placement procedures.');if(protecto==='no'||protecto==='partial')actions.push('Implement or expand protectotype vaccination given ongoing Var 2 evolution and heterologous virus detections.');html+=`<div class="report-sec"><h3>Recommended Actions</h3>`;actions.forEach((a,i)=>{html+=`<div class="action-item"><div class="action-num">${i+1}</div><div class="action-text">${a}</div></div>`});html+=`</div><hr><div style="font-size:10px;color:var(--text3)">Generated ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} · Ct cutoff: &lt;${ctThresh} · IB Field Findings Bachoco 2026 guidelines · Haplotype network: median-joining (ε=${document.getElementById('epsilon').value})</div>`;document.getElementById('reportContent').innerHTML=html;switchTab('report')}
+function loadExample(){setMode('paste');document.getElementById('org').value='Bachoco';document.getElementById('survey_date').value='December 2025';document.getElementById('country').value='Mexico';document.getElementById('vacc_program').value='Ma5 + 4/91 at day 1';document.getElementById('rawData').value=['Zone\tFarm Code\tAge\tSample\tMass Ct\tMass Result\t793B Ct\t793B Result','G\tMBAC143\t7\tT\t\tNegative\t\tNegative','G\tMBAC144\t14\tT\t\tNegative (F)\t\tNegative (F)','G\tMBAC146\t35\tT\t22.86\tSU\t19.76\tSU','J\tMBAC147\t7\tT\t\tNegative\t\tNegative','J\tMBAC148\t14\tT\t21.44\tVar 2 FV\t21.11\tVar 2 FV','J\tMBAC149\t28\tT\t21.20\tVar 2 FV\t15.63\tVar 2 FV','J\tMBAC150\t35\tT\t23.07\tVar 2 FV\t25.86\tVar 2 FV','O\tMBAC151\t7\tT\t\tNegative\t\tNegative','O\tMBAC153\t28\tT\t23.34\tVar 2 FV\t26.05\tVar 2 FV','O\tMBAC154\t35\tT\t21.04\tVar 2 FV\t32.99\tSU','P\tMBAC155\t7\tT\t31.44\t4/91 VV\t17.75\t4/91 VV','P\tMBAC158\t35\tT\t20.99\t4/91 VV\t24.55\tMa5 VOV','Q\tMBAC159\t7\tT\t37.75\t4/91 VV\t30.41\t4/91 VV','Q\tMBAC161\t28\tT\t20.84\tVar 2 FV\t12.98\t23-050667 GI-17 FV','S\tMBAC163\t7\tT\t37.13\t4/91 VV\t19.34\t4/91 VV','S\tMBAC165\t28\tT\t28.85\t4/91 VOV\t22.22\t4/91 VOV','M\tMBAC181\t7\tT\t\tNegative\t\tNegative','M\tMBAC186\t35\tT\t25.11\tAL/2311/00 Ark-like FV\t24.82\tSU ARK Positive','N\tMBAC188\t7\tT\t\tNegative\t\tNegative','N\tMBAC189\t14\tT\t23.91\tVar 2 FV\t18.76\tVar 2 FV','N\tMBAC193\t35\tT\t27.56\t4/91 VOV\t17.98\t4/91 VV'].join('\n')}
+function clearAll(){parsedRows=[];sequences=[];haplotypes=[];networkEdges=[];nodePositions=[];renderParsedTable();['xlFileList','pdfFileList','fastaFileList'].forEach(id=>document.getElementById(id).innerHTML='');document.getElementById('pdfStatus').textContent='';document.getElementById('rawData').value='';document.getElementById('haploSection').style.display='none';document.getElementById('haploPlaceholder').style.display='block';['org','survey_date','country','vacc_program'].forEach(id=>document.getElementById(id).value='');document.getElementById('reportContent').innerHTML='<div style="text-align:center;padding:4rem;color:var(--text3);font-size:14px"><div style="font-size:40px;margin-bottom:12px;opacity:0.4">⊟</div>No report yet — add sample data and click <strong>Generate Report</strong></div>'}
+</script>
+</body>
+</html>
